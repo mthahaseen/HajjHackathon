@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".LandingPageActivity"
+    android:background="@android:color/black">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_marginTop="40dp"
+            android:tint="@android:color/white"
+            android:layout_gravity="center_horizontal"
+            android:src="@drawable/logo_trans"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:layout_marginTop="10dp"
+            android:background="@android:color/white"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:background="@android:color/white"
+            android:textColor="@android:color/black"
+            android:textSize="20sp"
+            android:gravity="center"
+            android:text="@string/bluetooth_low_energy"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="@android:color/white"/>
+
+        <Button
+            android:id="@+id/btnBroadcast"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_border"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="40dp"
+            android:paddingLeft="20dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingRight="20dp"
+            android:text="@string/broadcast"
+            android:textColor="#FFFFFF"
+            android:fontFamily="sans-serif-light"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/btnReceiver"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/rounded_border"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="40dp"
+            android:paddingLeft="30dp"
+            android:paddingStart="30dp"
+            android:paddingEnd="30dp"
+            android:paddingRight="30dp"
+            android:text="@string/receiver"
+            android:textColor="#FFFFFF"
+            android:fontFamily="sans-serif-light"
+            android:textSize="15sp" />
+    </LinearLayout>
+</RelativeLayout>

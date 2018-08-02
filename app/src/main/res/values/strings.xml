@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">FifthPillar</string>
+    <string name="next_id">Next ID: %s</string>
+    <string name="send_data">Send Data</string>
+    <string name="haji_broadcast">Haji - Broadcast</string>
+    <string name="bt_null">Error: Bluetooth Object Null</string>
+    <string name="general">GENERAL</string>
+    <string name="sending_via_ble">Sending data via BLE</string>
+    <string name="discoverable_near_by">This device is discoverable to others nearby.</string>
+    <string name="refresh">Refresh</string>
+    <string name="start_error_prefix">Start Advertising failed: </string>
+    <string name="start_error_already_started">already started.</string>
+    <string name="start_error_too_large">data packet exceeded 31 Byte limit.</string>
+    <string name="start_error_unsupported">not supported on this device.</string>
+    <string name="start_error_internal">internal error.</string>
+    <string name="start_error_too_many">too many advertisers.</string>
+    <string name="start_error_unknown">unknown error</string>
+    <string name="advertising_timedout">Advertising stopped due to timeout.</string>
+    <string name="bt_not_enabled_leaving">User declined to enable Bluetooth, exiting Bluetooth Advertisements.</string>
+    <string name="activity_main_title">Nearby Devices</string>
+    <string name="broadcast_device">Broadcast Device</string>
+    <string name="bt_not_supported">Bluetooth is not supported on this device.</string>
+    <string name="bt_ads_not_supported">Bluetooth Advertisements are not supported on this device.</string>
+    <string name="stop_data">Stop Data</string>
+    <string name="hajji_receiver">Hajji Receiver</string>
+    <string name="start_receiving">Start Receiving</string>
+    <string name="stop_receiving">Stop Receiving</string>
+    <string name="received_count">Received: %s</string>
+    <string name="broadcast">Broadcast</string>
+    <string name="receiver">Receiver</string>
+    <string name="bluetooth_low_energy">Bluetooth Low Energy</string>
+</resources>
