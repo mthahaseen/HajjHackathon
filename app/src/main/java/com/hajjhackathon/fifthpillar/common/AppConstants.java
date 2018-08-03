@@ -16,5 +16,11 @@ public class AppConstants {
     public static final int REQUEST_LOCATION_PERMISSION = 101;
     public static final int REQUEST_LOCATION_PERMISSION_START_SCANNING = 102;
 
+    public static final String EMPTY_STRING = "";
+
+    public static final String FIRE_BASE_PATH = "hajjhackathon";
     public static final String KEY_ADVERTISE_DATA = "key.advertise.data";
+
+    public static final String LOCATION_GROUP_MASJID_HARAM = "masjid.haram";
+    public static final String LOCATION_GROUP_JAMARAT = "jamarat";
 }

@@ -22,19 +22,29 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.hajjhackathon.fifthpillar.R;
 import com.hajjhackathon.fifthpillar.common.AppConstants;
 import com.hajjhackathon.fifthpillar.common.Utils;
+import com.hajjhackathon.fifthpillar.models.HajiBO;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
-import java.util.TimerTask;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
+import static com.hajjhackathon.fifthpillar.common.AppConstants.EMPTY_STRING;
+import static com.hajjhackathon.fifthpillar.common.AppConstants.FIRE_BASE_PATH;
+import static com.hajjhackathon.fifthpillar.common.AppConstants.LOCATION_GROUP_JAMARAT;
+import static com.hajjhackathon.fifthpillar.common.AppConstants.LOCATION_GROUP_MASJID_HARAM;
 import static com.hajjhackathon.fifthpillar.common.AppConstants.REQUEST_LOCATION_PERMISSION;
 import static com.hajjhackathon.fifthpillar.common.AppConstants.REQUEST_LOCATION_PERMISSION_START_SCANNING;
 
@@ -43,6 +53,7 @@ import static com.hajjhackathon.fifthpillar.common.AppConstants.REQUEST_LOCATION
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child(FIRE_BASE_PATH);
 
     @BindView(R.id.txtReceived)
     TextView txtReceived;
@@ -51,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.btnStopReceiving)
     Button btnStopReceiving;
 
-    ArrayList<String> lstHajjIDs = new ArrayList<>();
+    ArrayList<HajiBO> lstHajjiBOs = new ArrayList<>();
     /**
      * Stops scanning after 5 seconds.
      */
@@ -110,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         stopScanning();
     }
 
-    private void checkLocationPermission(boolean startScanning){
+    private void checkLocationPermission(boolean startScanning) {
         if (!Utils.isGpsPermissionGranted(this)) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
 
@@ -118,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                         startScanning ? REQUEST_LOCATION_PERMISSION_START_SCANNING : REQUEST_LOCATION_PERMISSION);
             }
-        }else if(startScanning){
+        } else if (startScanning) {
             startScanning();
         }
     }
@@ -148,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode == REQUEST_LOCATION_PERMISSION_START_SCANNING && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+        if (requestCode == REQUEST_LOCATION_PERMISSION_START_SCANNING && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             startScanning();
         }
     }
@@ -162,39 +173,29 @@ public class MainActivity extends AppCompatActivity {
             btnStopReceiving.setVisibility(View.VISIBLE);
             Log.d(TAG, "Starting Scanning");
 
-            timer = new Timer();
-            timer.scheduleAtFixedRate(new TimerTask() {
+            mHandler.postDelayed(runnable = new Runnable() {
+                @Override
                 public void run() {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            txtReceived.setText(getString(R.string.received_count, String.valueOf(lstHajjIDs.size())));
+                            txtReceived.setText(getString(R.string.received_count, String.valueOf(lstHajjiBOs.size())));
                         }
                     });
-                    lstHajjIDs.clear();
+                    // Before clearing the data, push it to firebase
+                    ArrayList<HajiBO> tempHajjiBOs = new ArrayList<>();
+                    tempHajjiBOs.addAll(lstHajjiBOs);
+                    sendDataToFirebase(tempHajjiBOs);
+                    lstHajjiBOs.clear();
                     // Stop scan
                     mBluetoothLeScanner.stopScan(mScanCallback);
                     mScanCallback = null;
                     // Kick off a new scan.
                     mScanCallback = new SampleScanCallback();
                     mBluetoothLeScanner.startScan(buildScanFilters(), buildScanSettings(), mScanCallback);
-                }
-            }, 0, SCAN_PERIOD);
-
-            /*mHandler.postDelayed(runnable = new Runnable() {
-                @Override
-                public void run() {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            txtReceived.setText(getString(R.string.received_count, String.valueOf(lstHajjIDs.size())));
-                            lstHajjIDs.clear();
-
-                        }
-                    });
                     mHandler.postDelayed(runnable, SCAN_PERIOD);
                 }
-            }, SCAN_PERIOD);*/
+            }, SCAN_PERIOD);
         }
     }
 
@@ -206,8 +207,9 @@ public class MainActivity extends AppCompatActivity {
         // Stop the scan, wipe the callback.
         mBluetoothLeScanner.stopScan(mScanCallback);
         mScanCallback = null;
-        //mHandler.removeCallbacks(runnable);
-        timer.cancel();
+        mHandler.removeCallbacks(runnable);
+        txtReceived.setText(EMPTY_STRING);
+        //timer.cancel();
         btnStartReceiving.setVisibility(View.VISIBLE);
         btnStopReceiving.setVisibility(View.GONE);
     }
@@ -243,18 +245,30 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
             super.onBatchScanResults(results);
-
+            long timeStamp = Calendar.getInstance().getTimeInMillis();
             for (ScanResult result : results) {
-                lstHajjIDs.add("hello");
-                //lstHajjIDs.add(new String(result.getScanRecord().getServiceData(AppConstants.Service_UUID)));
+                Log.i("bAddress", result.getDevice().getAddress());
+                String[] latLngArr = Utils.getRandomHajjiLocation().split(",");
+                HajiBO hajiBO = new HajiBO();
+                hajiBO.setSender("mthahaseen");
+                hajiBO.setLat(Double.parseDouble(latLngArr[0]));
+                hajiBO.setLng(Double.parseDouble(latLngArr[1]));
+                hajiBO.setTimeStamp(timeStamp);
+                lstHajjiBOs.add(hajiBO);
             }
         }
 
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
-            lstHajjIDs.add("hello");
-            //lstHajjIDs.add(new String(result.getScanRecord().getServiceData(AppConstants.Service_UUID)));
+            long timeStamp = Calendar.getInstance().getTimeInMillis();
+            String[] latLngArr = Utils.getRandomHajjiLocation().split(",");
+            HajiBO hajiBO = new HajiBO();
+            hajiBO.setSender("mthahaseen");
+            hajiBO.setLat(Double.parseDouble(latLngArr[0]));
+            hajiBO.setLng(Double.parseDouble(latLngArr[1]));
+            hajiBO.setTimeStamp(timeStamp);
+            lstHajjiBOs.add(hajiBO);
         }
 
         @Override
@@ -262,5 +276,21 @@ public class MainActivity extends AppCompatActivity {
             super.onScanFailed(errorCode);
             Toast.makeText(MainActivity.this, "Scan failed with error: " + errorCode, Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void sendDataToFirebase(ArrayList<HajiBO> lstHajjiBOs){
+        boolean locGroup = true;
+        HashMap<String, Object> locationsMap = new HashMap<>();
+        for(HajiBO hajiBO : lstHajjiBOs){
+            HashMap<String, Object> hajiLocMap = new HashMap<>();
+            hajiLocMap.put("timestamp", ServerValue.TIMESTAMP);
+            hajiLocMap.put("lat", hajiBO.getLat());
+            hajiLocMap.put("lng", hajiBO.getLng());
+            hajiLocMap.put("locationGroup", locGroup ? LOCATION_GROUP_MASJID_HARAM : LOCATION_GROUP_JAMARAT);
+            hajiLocMap.put("sender", hajiBO.getSender());
+            locationsMap.put("hajilocations/"+ Utils.getRandomHajjID(), hajiLocMap);
+            locGroup = !locGroup;
+        }
+        mDatabase.updateChildren(locationsMap);
     }
 }
